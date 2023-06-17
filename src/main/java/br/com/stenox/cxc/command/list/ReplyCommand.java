@@ -1,0 +1,75 @@
+package br.com.stenox.cxc.command.list;
+
+import br.com.stenox.cxc.command.CommandBase;
+import br.com.stenox.cxc.gamer.Gamer;
+import br.com.stenox.cxc.gamer.group.Group;
+import br.com.stenox.cxc.utils.StringUtils;
+import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+
+import java.util.Collections;
+import java.util.UUID;
+
+public class ReplyCommand extends CommandBase {
+
+    public ReplyCommand() {
+        super("reply", "", "", Collections.singletonList("r"));
+    }
+
+    @Override
+    public boolean execute(CommandSender sender, String lb, String[] args) {
+        if (sender instanceof Player) {
+            Player player = (Player) sender;
+            Gamer gamer = Gamer.getGamer(player.getUniqueId());
+            if (args.length == 0) {
+                player.sendMessage("§cUsage: /" + lb + " <mensagem>");
+            } else if (gamer.getLastTell() != null) {
+                Player target = Bukkit.getPlayer(gamer.getLastTell());
+                if (target != null) {
+                    Gamer targetGamer = Gamer.getGamer(target.getUniqueId());
+                    if (targetGamer.getGroup().ordinal() > Group.YOUTUBER_PLUS.ordinal()) {
+                        if (!player.canSee(target) && !isEnvolved(player.getUniqueId(), target.getUniqueId())) {
+                            player.sendMessage("§cAlvo não encontrado.");
+                            return false;
+                        }
+                    }
+
+                    if (!targetGamer.isTell() && gamer.getGroup().ordinal() > Group.YOUTUBER_PLUS.ordinal()) {
+                        player.sendMessage("§cO alvo está com as mensagens privadas desativadas ou ele te bloqueou.");
+                        return false;
+                    }
+
+                    if (gamer.isMuted()){
+                        player.sendMessage("§cVocê está mutado " + (gamer.getMuteTime() == -1 ? "permanentemente" : "temporariamente") + ".");
+                        return false;
+                    }
+
+                    String message = StringUtils.createArgs(0, args, "", false);
+
+                    targetGamer.setLastTell(player.getUniqueId());
+                    gamer.setLastTell(target.getUniqueId());
+
+                    target.sendMessage("§8[§7" + player.getName() + " §8§l> §7Você§8] §e" + message);
+                    player.sendMessage("§8[§7Você §8§l> §7" + target.getName() + "§8] §e" + message);
+                } else {
+                    player.sendMessage("§cAlvo não encontrado.");
+                }
+            } else {
+                player.sendMessage("§cVocê não possui nenhuma mensagem privada para responder.");
+            }
+        }
+        return false;
+    }
+
+    public boolean isEnvolved(UUID p1, UUID p2) {
+        Gamer pp1 = Gamer.getGamer(p1);
+        Gamer pp2 = Gamer.getGamer(p2);
+        if (pp1.getLastTell() != null && pp1.getLastTell().toString().equalsIgnoreCase(p2.toString()))
+            return true;
+        else if (pp2.getLastTell() != null && pp2.getLastTell().toString().equalsIgnoreCase(p1.toString()))
+            return true;
+
+        return false;
+    }
+}

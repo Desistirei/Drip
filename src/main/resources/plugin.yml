@@ -1,0 +1,5 @@
+name: clan-x-clan
+authors: [Stenoxz]
+version: 0.0.1
+main: br.com.stenox.cxc.Main
+depend: [ProtocolLib]

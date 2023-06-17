@@ -1,0 +1,9 @@
+#CLANXCLAN, EVENT
+mode: 'CLANXCLAN'
+
+names:
+  clanName: 'CLANXCLAN'
+  serverIp: 'clanxclan.com.br'
+motd:
+  linha1: ''
+  linha2: ''
